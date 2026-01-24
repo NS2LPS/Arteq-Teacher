@@ -1,0 +1,3 @@
+[submodule "Arteq"]
+	path = Arteq
+	url = https://github.com/NS2LPS/Arteq
