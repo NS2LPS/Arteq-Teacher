@@ -264,44 +264,6 @@ config = {
         },
     },
 }
-with open('config_qubit.md','w') as f:
-    f.write(f"""## Recap of the config
 
-### Qubit
+calibration_tasks = {'qubit':{qubit_LO: [qubit_IF,]}, 'resonator':{resonator_LO: [resonator_IF,]},}
 
-- qubit_LO = {qubit_LO/1e6:.1f} MHz
-- qubit_IF = {qubit_IF/1e6:.1f} MHz
-- qubit_LO_gain = {qubit_LO_gain} dB
-
-#### Long square "saturation" pulse (`saturation`)
-
-- saturation_len = {saturation_len}
-- saturation_amp = {saturation_amp}
-
-#### Square pulse (`pi`, `pi_half`)
-
-- square_pi_len = {square_pi_len}
-- square_pi_amp = {square_pi_amp}  
-- square_pi_half_amp = {square_pi_amp/2}
-
-#### Gaussian pulses (`x180`, `y180`, `x90`, `y90`)
-
-- rot_180_len = {rot_180_len}  
-- rot_180_sigma = {rot_180_sigma}
-- rot_180_amp = {rot_180_amp} 
-- rot_90_len = {rot_90_len}  
-- rot_90_sigma = {rot_90_sigma}
-- rot_90_amp = {rot_90_amp}  
-
-### Readout Resonator
-
-- resonator_LO = {resonator_LO/1e6:.1f} MHz  
-- resonator_IF = {resonator_IF/1e6:.1f} MHz
-- resonator_LO_gain = {resonator_LO_gain} dB
-
-#### Readout pulse (`readout`)
-
-- readout_len = {readout_len}
-- readout_delay = {readout_delay} 
-- readout_amp = {readout_amp}
-- time_of_flight = {time_of_flight}""")

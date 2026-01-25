@@ -173,3 +173,5 @@ config = {
         },
     },
 }
+
+calibration_tasks = {'qubit':{qubit_LO: [qubit_IF,]},}
