@@ -145,23 +145,18 @@ class QueueMonitorSimple(threading.Thread):
         try:
             qm_list = qmm.list_open_qms()
             qm = qmm.get_qm(qm_list[0])
+            self.QM_label.value = f"Jobs on {qm.id}"
+            table = []
+            for job in qm.queue.pending_jobs:
+                table.append(f"""<tr><td>Pending</td><td>{job.id}</td></tr>""")
+            job = qm.get_running_job()
+            if job:
+                table.append(f"""<tr><td>Running</td><td>{job.id}</td></tr>""")
+            rows = " ".join(table)
+            self.job_table.value = f"<table>{rows}</table>"
         except:
-            qm = None
-        if qm:
-            try:
-                self.QM_label.value = f"Jobs on {qm.id}"
-                table = []
-                for job in qm.queue.pending_jobs:
-                    table.append(f"""<tr><td>Pending</td><td>{job.id}</td></tr>""")
-                job = qm.get_running_job()
-                if job:
-                    table.append(f"""<tr><td>Running</td><td>{job.id}</td></tr>""")
-                rows = " ".join(table)
-                self.job_table.value = f"<table>{rows}</table>"
-            except:
-                self.job_table.value = "<p>Error while parsing the queue</p>"
-        else:
-            self.QM_label.value = "No QM running"
+            self.job_table.value = ""
+            self.QM_label.value = "Error while connecting to the QM"
 
 __killtime__ = {"inf":1e10, "30s":30, "1min":60, "2min":120, "5min":300, }
 
@@ -233,9 +228,6 @@ class QueueMonitor(threading.Thread):
         try:
             qm_list = qmm.list_open_qms()
             qm = qmm.get_qm(qm_list[0])
-        except:
-            qm = None
-        if qm:
             self.QM_label.value = f"Jobs on {qm.id}"
             table = [ self.search_job(job.id,qm.id,"pending") for job in qm.queue.pending_jobs ]
             running_job = qm.get_running_job()
@@ -248,8 +240,9 @@ class QueueMonitor(threading.Thread):
             if socket2:
                 socket2.send_string("JOBTABLE", flags=zmq.SNDMORE)
                 socket2.send_json(table)
-        else:
-            self.QM_label.value = "No QM running"
+        except:
+            self.job_table.value = ""
+            self.QM_label.value = "Error while connecting to the QM"
     
     def display_table(self, table):
         out = "<table>"
@@ -358,6 +351,11 @@ class Job(threading.Thread):
                 return
         self.output.append_stdout("Job has finished\n")
         self.job_table.value = ""
+
+    def wait(self):
+        result_handles = self.job.result_handles
+        while result_handles.is_processing():
+            time.sleep(0.5)
 
 class JobSimple:
     def __init__(self, qmprog):
