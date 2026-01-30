@@ -10,7 +10,7 @@ u = unit(coerce_to_integer=True)
 #                  Qubit                    #
 #############################################
 qubit_IF = 50 * u.MHz
-qubit_LO =  3868.18 * u.MHz - qubit_IF
+qubit_LO =  3868.84 * u.MHz - qubit_IF
 qubit_LO_gain = 6
 
 # Continuous wave
@@ -94,6 +94,7 @@ config = {
                 "x180": "x180_pulse",
                 "y90": "y90_pulse",
                 "y180": "y180_pulse",
+                "unknown":"unknown_pulse"
             },
         },
         "resonator": {
@@ -214,6 +215,15 @@ config = {
             },
             'digital_marker': 'ON'
         },
+        "unknown_pulse":{
+            "operation": "control",
+            "length": rot_180_len,
+            "waveforms": {
+                "I": "unknown_I_wf",
+                "Q": "unknown_Q_wf",
+            },
+            'digital_marker': 'ON'
+        },
         "readout_pulse": {
             "operation": "measurement",
             "length": readout_len,
@@ -245,6 +255,8 @@ config = {
         "y180_Q_wf": {"type": "arbitrary", "samples": y180_Q_wf.tolist()},
         "y180_I_wf": {"type": "arbitrary", "samples": y180_I_wf.tolist()},
         "readout_wf": {"type": "constant", "sample": readout_amp},
+        "unknown_I_wf" : {"type": "arbitrary", "samples": (0.6*x180_I_wf).tolist()},
+        "unknown_Q_wf" : {"type": "arbitrary", "samples": (0.4*x180_I_wf).tolist()},
     },
     "digital_waveforms": {
         "ON": {"samples": [(1, 0)]},

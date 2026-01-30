@@ -22,6 +22,9 @@ try:
     socket2.bind(f"tcp://{host}:{port2}")
 except:
     socket2 = None
+socket = context.socket(zmq.PUB)
+socket.connect(f"tcp://{host}:{port1}")
+
 
 def get_config(full=False):
     """Return configuration dictionary of the current QM.
@@ -147,7 +150,7 @@ class QueueMonitorSimple(threading.Thread):
             qm = qmm.get_qm(qm_list[0])
             self.QM_label.value = f"Jobs on {qm.id}"
             table = []
-            for job in qm.queue.pending_jobs:
+            for job in reversed(qm.queue.pending_jobs):
                 table.append(f"""<tr><td>Pending</td><td>{job.id}</td></tr>""")
             job = qm.get_running_job()
             if job:
@@ -158,14 +161,14 @@ class QueueMonitorSimple(threading.Thread):
             self.job_table.value = ""
             self.QM_label.value = "Error while connecting to the QM"
 
-__killtime__ = {"inf":1e10, "30s":30, "1min":60, "2min":120, "5min":300, }
+__killtime__ = {"inf":1e10, "10s":10, "30s":30, "1min":60, "2min":120, "5min":300, }
 
 class QueueMonitor(threading.Thread):
     def __init__(self):
         super().__init__()
         self.button_stop = widgets.Button(description='Stop')
         self.button_kill = widgets.Button(description='Kill')
-        self.dropdown_kill = widgets.Dropdown(options=['inf','30s','1min','2min','5min'],value='inf',description='Max time:')
+        self.dropdown_kill = widgets.Dropdown(options=['inf','10s','30s','1min','2min','5min'],value='inf',description='Max time:')
         self.progress_bar = widgets.IntProgress(value=0, min=0, max=60)
         self.QM_label = widgets.Label(value="")
         self.job_table = widgets.HTML(value="")
@@ -229,7 +232,7 @@ class QueueMonitor(threading.Thread):
             qm_list = qmm.list_open_qms()
             qm = qmm.get_qm(qm_list[0])
             self.QM_label.value = f"Jobs on {qm.id}"
-            table = [ self.search_job(job.id,qm.id,"pending") for job in qm.queue.pending_jobs ]
+            table = [ self.search_job(job.id,qm.id,"pending") for job in reversed(qm.queue.pending_jobs) ]
             running_job = qm.get_running_job()
             if running_job:
                 job_entry = self.search_job(running_job.id,qm.id,"running")
@@ -247,7 +250,7 @@ class QueueMonitor(threading.Thread):
     def display_table(self, table):
         out = "<table>"
         for job in table:
-            waiting_time = f"{time.time()-job["time"]:.0f}" if job["time"] else "--"
+            waiting_time = f"{time.time()-job["time"]:.0f}" if job["time"] else "??"
             out += f"""<tr><td>{job["status"].capitalize()}</td><td>{job["id"]}</td><td>{job["user"] or "unknown"}</td><td>{waiting_time}s</td></tr>"""
         out += "</table>"
         self.job_table.value = out
@@ -297,7 +300,7 @@ class Job(threading.Thread):
     def display(self, table):
         out = "<em>QM job list:</em><table>"
         for job in table:
-            waiting_time = f"{time.time()-job["time"]:.0f}" if job["time"] else "--"
+            waiting_time = f"{time.time()-job["time"]:.0f}" if job["time"] else "??"
             if job["id"]==self.job.id:
                 out += f"""<tr><td><b>{job["status"].capitalize()}</b></td><td><b>{job["id"]}</b></td><td><b>{job["user"] or os.environ["JUPYTERHUB_USER"]}</td><td><b>{waiting_time}s</b></td></tr>"""
             else:
